@@ -45,6 +45,8 @@ services:
     image: postgres:16.2
     container_name: orders_database
     restart: always
+    ports:
+      - 5432:5432
     volumes:
       - ./orders-ms/postgres:/var/lib/postgresql/data
     environment:
@@ -56,3 +58,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ====================== #
+  # Payments microservices #
+  # ====================== #
+  payments-ms:
+
+    build: ./payments-ms
+    volumes:
+      - ./payments-ms/src:/usr/src/app/src
+    command: npm run start:dev
+    ports:
+      - ${PAYMENT_MS_PORT}:${PAYMENT_MS_PORT}
+    environment:
+      - PORT=3003
+      - NATS_SERVERS=nats://nats-server:4222
+      - PAYMENTS_PORT=${PAYMENTS_PORT}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - ENDPOINT_SECRET_HOOKDECK=${ENDPOINT_SECRET_HOOKDECK}
